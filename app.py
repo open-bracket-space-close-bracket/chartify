@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
 import os
 import pandas as pd
@@ -32,22 +32,17 @@ def get_coin_data(coin):
     rest_of_query = f'/USD/history?period_id=4DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
-
+    print(response)
     # Data SHOULD be JSON... is it?
-    data = response.json()
-    keys = data[0].keys()
+    data = str(response)
+    # keys = data[0].keys()
+    # data = json.dumps(response)
+    # new_data = (jsonify({data}))
+    # data = response.json()
+    print(data)
+    # print(f"Number of dictionaries in data: {len(data)}")
 
-    print(f"Number of dictionaries in data: {len(data)}")
 
-    # data returns an array containing a bunch of dicts like this:
-    #{'time_period_start': '2021-05-16T00:00:00.0000000Z', 
-    # 'time_period_end': '2021-05-16T00:01:00.0000000Z', 
-    # 'time_open': '2021-05-16T00:00:00.0000000Z', 
-    # 'time_close': '2021-05-16T00:00:00.0000000Z', 
-    # 'rate_open': 46768.5467267036, 
-    # 'rate_high': 46768.5467267036, 
-    # 'rate_low': 46768.5467267036, 
-    # 'rate_close': 46768.5467267036}
 
     # We just need "time_period_end" and "rate_close" from each of 100 dictionaries
     # X axis is time (time_period_end)
@@ -55,15 +50,17 @@ def get_coin_data(coin):
     # Each data point is constructed from each dictionary in data
 
     # PANDAS: Make data frame and chart:
-    df = pd.DataFrame({})
-    print(df.info)
+    # df = pd.DataFrame({})
+    
+    # df = pd.read_json(data)
+    # print(df.info)
 
-    fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    # fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
+    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    if request.method == "POST":
-        coin_name = request.form.get("coin_name")
-        return redirect(url_for('app.api', coin=coin_name))
+    # if request.method == "POST":
+    #     coin_name = request.form.get("coin_name")
+    #     return redirect(url_for('app.api', coin=coin_name))
 
     return f"<p>{data}</p>"
     #return render_template('graph.html', graphJSON = graphJSON)
@@ -78,3 +75,14 @@ def get_coin_data(coin):
 # headers = {'X-CoinAPI-Key': }
 # response = requests.get(url, headers=headers)
 # data = response.json()
+
+
+    # data returns an array containing a bunch of dicts like this:
+    #{'time_period_start': '2021-05-16T00:00:00.0000000Z', 
+    # 'time_period_end': '2021-05-16T00:01:00.0000000Z', 
+    # 'time_open': '2021-05-16T00:00:00.0000000Z', 
+    # 'time_close': '2021-05-16T00:00:00.0000000Z', 
+    # 'rate_open': 46768.5467267036, 
+    # 'rate_high': 46768.5467267036, 
+    # 'rate_low': 46768.5467267036, 
+    # 'rate_close': 46768.5467267036}
