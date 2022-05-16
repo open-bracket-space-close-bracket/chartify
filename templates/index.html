@@ -9,6 +9,18 @@
 </head>
 <body>
 
-<h1>Hello World</h1>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+    
+    <h1>Hello World</h1>
+    <form action="/api/{coin_name}" method="post">
+        <label for="coin_name">
+            Enter a coin name...
+        </label>
+        <input type="text" name="coin_name" id="coin_name">
+        <input type="submit">
+    </form>
+    </body>
+    </html>
+
+{% endblock %}
