@@ -29,17 +29,18 @@ def get_coin_data(coin):
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
     COIN_API_KEY = os.getenv('COIN_API_KEY')
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
-    rest_of_query = f'/USD/history?period_id=4DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
+    rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
     print(response)
     # Data SHOULD be JSON... is it?
-    data = str(response)
+    data = response.json()
     # keys = data[0].keys()
     # data = json.dumps(response)
     # new_data = (jsonify({data}))
     # data = response.json()
-    print(data)
+    df = pd.DataFrame(data)
+    print(df)
     # print(f"Number of dictionaries in data: {len(data)}")
 
 
@@ -62,7 +63,7 @@ def get_coin_data(coin):
     #     coin_name = request.form.get("coin_name")
     #     return redirect(url_for('app.api', coin=coin_name))
 
-    return f"<p>{data}</p>"
+    return f"<p>{df}</p>"
     #return render_template('graph.html', graphJSON = graphJSON)
 
 # @app.route("/api/<coin>")
