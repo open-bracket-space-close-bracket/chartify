@@ -21,6 +21,7 @@ def get_coin_data(coin):
     data = response.json()
     return f'<p>{data}</p>'
 
+
 # @app.route("/api/<coin>")
 # def get_coin_data(coin): 
 #     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
