@@ -25,7 +25,6 @@ GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
@@ -141,6 +140,10 @@ def logout():
 
 @app.route('/api/<coin>', methods=["GET", "POST"])
 def get_coin_data(coin): 
+    if request.method == "POST":
+         coin_name = request.form.get("coin_name")
+         return redirect(url_for('app.api', coin=coin_name))
+
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
@@ -153,24 +156,16 @@ def get_coin_data(coin):
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
     COIN_API_KEY = os.getenv('COIN_API_KEY')
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
-    rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
+    rest_of_query = f'/USD/history?period_id=3DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
 
-
     data = response.json()
-    # keys = data[0].keys()
-
     df = pd.DataFrame(data)
-    print(df)
 
-    return f"<p>{df}</p>"
+    #return f"<p>{df}</p>"
 
-    # fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
-    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    # if request.method == "POST":
-    #     coin_name = request.form.get("coin_name")
-    #     return redirect(url_for('app.api', coin=coin_name))
-
-    #return render_template('graph.html', graphJSON = graphJSON)
+    return render_template('graph.html', graphJSON = graphJSON)
