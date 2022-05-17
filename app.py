@@ -1,3 +1,4 @@
+import re
 from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
 import os
@@ -25,7 +26,8 @@ GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
-graphJSON = ""
+graph_holder = ""
+current_user_queries = []
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
@@ -40,7 +42,7 @@ def load_user(user_id):
     return User.get(user_id)
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def index(graphJSON=None):
     if current_user.is_authenticated:
         # return (
@@ -51,10 +53,17 @@ def index(graphJSON=None):
         #         current_user.name, current_user.email, current_user.profile_pic
         #     )
         # )
-        return render_template('index.html',  user_name=current_user.name, user_email=current_user.email, user_pic=current_user.profile_pic, user=current_user, graphJSON=graphJSON)
+        return render_template('index.html',  user_name=current_user.name, user_email=current_user.email, user_pic=current_user.profile_pic, user=current_user, graphJSON=args["graphJSON"])
     else:
         # return '<a class="button" href="/login">Google Login</a>'
-        return render_template('index.html')
+
+        #Args is a dictionary that contains key "requestJSON".  This is how we pass our graph data.
+        args = request.args
+        if args:
+            if args["graphJSON"]:
+                return render_template('index.html', graphJSON=args["graphJSON"])
+
+        return render_template('index.html', graphJSON=None)
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -136,7 +145,7 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
-@app.route('/api/<coin>', methods=["GET", "POST"])
+@app.route('/api/<coin>', methods=["GET","POST"])
 def get_coin_data(coin): 
     #Sets the end of our timeframe:
     ending_date = date.today()
@@ -155,7 +164,7 @@ def get_coin_data(coin):
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
     
-    print(f"Response: {response}")
+    # print(f"Response: {response}")
 
     data = response.json()
 
@@ -174,9 +183,8 @@ def get_coin_data(coin):
     fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-
-    return render_template('graph.html', graphJSON = graphJSON)
-    #return redirect(url_for('index', graphJSON = graphJSON))
+    #return render_template('graph.html', graphJSON = graphJSON)
+    return redirect(url_for('index', graphJSON = graphJSON))
 
 
 # if __name__ == "__main__":
