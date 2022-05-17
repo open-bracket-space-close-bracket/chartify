@@ -25,20 +25,15 @@ GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
+graphJSON = ""
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-try:
-    init_db_command()
-except sqlite3.OperationalError:
-    # Assume it's already been created
-    pass
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -46,7 +41,7 @@ def load_user(user_id):
 
 
 @app.route("/")
-def index():
+def index(graphJSON=None):
     if current_user.is_authenticated:
         # return (
         #     "<p>Hello, {}! You're logged in! Email: {}</p>"
@@ -56,7 +51,7 @@ def index():
         #         current_user.name, current_user.email, current_user.profile_pic
         #     )
         # )
-        return render_template('index.html',  user_name=current_user.name, user_email=current_user.email, user_pic=current_user.profile_pic, user=current_user)
+        return render_template('index.html',  user_name=current_user.name, user_email=current_user.email, user_pic=current_user.profile_pic, user=current_user, graphJSON=graphJSON)
     else:
         # return '<a class="button" href="/login">Google Login</a>'
         return render_template('index.html')
@@ -147,6 +142,7 @@ def get_coin_data(coin):
     ending_date = date.today()
     ending_time = "00:00:00"
 
+    coin = coin.upper()
     #Sets the start of our timeframe to one year prior to present:
     starting_date = ending_date - datetime.timedelta(days=365)
 
@@ -158,25 +154,30 @@ def get_coin_data(coin):
     rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
-
+    
+    print(f"Response: {response}")
 
     data = response.json()
-    # keys = data[0].keys()
-
-    df = pd.DataFrame(data)
-    print(df)
-
-    # return f"<p>{df}</p>"
-
-    fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
     if request.method == "POST":
         coin_name = request.form.get("coin_name")
-        return redirect(url_for('app.api', coin=coin_name))
+        print(f"Coin name: {coin_name}")
+        return redirect(url_for('get_coin_data', coin=coin_name))
+
+
+    # keys = data[0].keys()
+
+    df = pd.DataFrame(data)
+
+     # return f"<p>{df}</p>"
+
+    fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
 
     return render_template('graph.html', graphJSON = graphJSON)
+    #return redirect(url_for('index', graphJSON = graphJSON))
 
 
-if __name__ == "__main__":
-    app.run(port=os.getenv('PORT', 5000), ssl_context="adhoc")
+# if __name__ == "__main__":
+#     app.run(port=os.getenv('PORT', 5000), ssl_context="adhoc")
