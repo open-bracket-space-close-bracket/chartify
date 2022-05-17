@@ -1,7 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
 import os
+import pandas as pd
+import plotly
+import plotly.express as px
 import json
+import datetime
+from datetime import date
 import sqlite3
 from flask_login import (
     LoginManager,
@@ -34,9 +39,11 @@ except sqlite3.OperationalError:
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
+
 
 @app.route("/")
 def index():
@@ -132,27 +139,38 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
-@app.route('/api/<coin>')
+@app.route('/api/<coin>', methods=["GET", "POST"])
 def get_coin_data(coin): 
+    #Sets the end of our timeframe:
+    ending_date = date.today()
+    ending_time = "00:00:00"
+
+    #Sets the start of our timeframe to one year prior to present:
+    starting_date = ending_date - datetime.timedelta(days=365)
+
+    # print(f"Starting date: {starting_date}\nEnding date: {ending_date}" )
+
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
     COIN_API_KEY = os.getenv('COIN_API_KEY')
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
-    rest_of_query = '/USD/history?period_id=1MIN&time_start=2022-01-01T00:00:00&time_end=2022-05-10T00:00:00'
+    rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
     response = requests.get(request_url, headers=headers)
+
+
     data = response.json()
-    return f'<p>{data}</p>'
+    # keys = data[0].keys()
 
-if __name__ == "__main__":
-    app.run(ssl_context="adhoc")
+    df = pd.DataFrame(data)
+    print(df)
 
-# @app.route("/api/<coin>")
-# def get_coin_data(coin): 
-#     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
-#     headers = 
-# COIN_API_KEY=
-# # url = 'https://rest.coinapi.io/v1/exchangerate/BTC/USD'
-# url = 'https://rest.coinapi.io/v1/exchangerate/BTC/USD/history?period_id=1MIN&time_start=2022-01-01T00:00:00&time_end=2022-05-10T00:00:00'
-# headers = {'X-CoinAPI-Key': }
-# response = requests.get(url, headers=headers)
-# data = response.json()
+    return f"<p>{df}</p>"
+
+    # fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
+    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # if request.method == "POST":
+    #     coin_name = request.form.get("coin_name")
+    #     return redirect(url_for('app.api', coin=coin_name))
+
+    #return render_template('graph.html', graphJSON = graphJSON)
