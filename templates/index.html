@@ -11,7 +11,20 @@
 
 {% extends "base.html" %}
 {% block content %}
-    
+    {% if user %}
+    <p>{{ user_email }}</p>
+    <p>{{ user_name }}</p>
+    <img src="{{ user_pic }}" alt="user picture"></img>
+    <p></p>
+    {% endif %}
+    {% if not user %}
+    <a class="button" href="/login">Google Login</a>
+    {% endif %}
+
+    {% if user %}
+    <a class="button" href="/logout">Google Logout</a>
+    {% endif %}
+
     <h1>Hello World</h1>
     <form action="/api/{coin_name}" method="post">
         <label for="coin_name">

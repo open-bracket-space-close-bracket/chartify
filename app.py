@@ -48,16 +48,18 @@ def load_user(user_id):
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return (
-            "<p>Hello, {}! You're logged in! Email: {}</p>"
-            "<div><p>Google Profile Picture:</p>"
-            '<img src="{}" alt="Google profile pic"></img></div>'
-            '<a class="button" href="/logout">Logout</a>'.format(
-                current_user.name, current_user.email, current_user.profile_pic
-            )
-        )
+        # return (
+        #     "<p>Hello, {}! You're logged in! Email: {}</p>"
+        #     "<div><p>Google Profile Picture:</p>"
+        #     '<img src="{}" alt="Google profile pic"></img></div>'
+        #     '<a class="button" href="/logout">Logout</a>'.format(
+        #         current_user.name, current_user.email, current_user.profile_pic
+        #     )
+        # )
+        return render_template('index.html',  user_name=current_user.name, user_email=current_user.email, user_pic=current_user.profile_pic, user=current_user)
     else:
-        return '<a class="button" href="/login">Google Login</a>'
+        # return '<a class="button" href="/login">Google Login</a>'
+        return render_template('index.html')
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -164,16 +166,16 @@ def get_coin_data(coin):
     df = pd.DataFrame(data)
     print(df)
 
-    return f"<p>{df}</p>"
+    # return f"<p>{df}</p>"
 
-    # fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
-    # graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    fig = px.line(df, x=keys, y=keys, title="Stonks 📈")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    # if request.method == "POST":
-    #     coin_name = request.form.get("coin_name")
-    #     return redirect(url_for('app.api', coin=coin_name))
+    if request.method == "POST":
+        coin_name = request.form.get("coin_name")
+        return redirect(url_for('app.api', coin=coin_name))
 
-    #return render_template('graph.html', graphJSON = graphJSON)
+    return render_template('graph.html', graphJSON = graphJSON)
 
 
 if __name__ == "__main__":
