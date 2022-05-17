@@ -174,3 +174,7 @@ def get_coin_data(coin):
     #     return redirect(url_for('app.api', coin=coin_name))
 
     #return render_template('graph.html', graphJSON = graphJSON)
+
+
+if __name__ == "__main__":
+    app.run(port=os.getenv('PORT', 5000), ssl_context="adhoc")
