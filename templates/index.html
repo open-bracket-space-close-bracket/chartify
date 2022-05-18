@@ -1,14 +1,15 @@
 <!doctype html>
 <html lang="en">
-
+    
     
     <head>
         <meta charset="UTF-8">
         <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    </head>
 
 <body>
     
@@ -43,21 +44,22 @@
         <input type="submit">
     </form>
         {% if graphJSON %}
-        print(graphJSON.length)
-        {% for i in range(graphJSON | length) %}
-            <div id='chart{{i}}' class='chart'></div>
-        {% endfor %}
+            {% for i in range(graphJSON | length) %}
+                <p>Found chart {{i}}</p>
+                <div id='chart{{i}}' class='chart'></div>
+            {% endfor %}
         {% endif %}
-</body>
-    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
-    
-    <script type='text/javascript'>
-        for (let i = 0; i < graphJSON.length; i++){
-            var graphs = {{ graphJSON[i] | safe}};
 
-            Plotly.plot(`chart${i}`, graphs, {});
-        }
-        </script>
+        {% block javascript %}
+            <script>
+                var data = {{graphJSON | safe}};
+                for (let j=0; j<data.length; j++){
+                    var thisChartData = JSON.parse(data[j]);
+                    Plotly.plot(`chart${j}`, thisChartData, {});
+                };
+            </script>
+        {% endblock %}
+</body>
 </html>
 
 {% endblock %}
