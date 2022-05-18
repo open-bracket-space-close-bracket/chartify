@@ -146,20 +146,23 @@ def logout():
     return redirect(url_for("index"))
 
 @app.route('/api/<coin>', methods=["GET","POST"])
-def get_coin_data(coin): 
+def get_coin_data(coin, time=100): 
     coin = coin.upper()
 
     if request.method == "POST":
         coin_name = request.form.get("coin_name")
-        print(f"Coin name: {coin_name}")
-        return redirect(url_for('get_coin_data', coin=coin_name))
+        timeframe = request.form.get("timeframe")
+        print(f"Coin name: {coin_name}, timeframe: {timeframe}")
+        # ALMOST working.... timeframe isn't being passed down to code below 🤔
+        return redirect(url_for('get_coin_data', coin=coin_name, time=timeframe))
 
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
 
     #Sets the start of our timeframe to one year prior to present:
-    starting_date = ending_date - datetime.timedelta(days=100)
+    #The "time" here isn't dynamic though it should be lol 😭
+    starting_date = ending_date - datetime.timedelta(time)
 
     #Construct API URL:
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
