@@ -43,20 +43,21 @@
         <input type="submit">
     </form>
         {% if graphJSON %}
-            {% for i in range(graphJSON.length) %}
-                <div id='chart{{ i }}' class='chart'></div>
-            {% endfor %}
+        print(graphJSON.length)
+        {% for i in range(graphJSON | length) %}
+            <div id='chart{{i}}' class='chart'></div>
+        {% endfor %}
         {% endif %}
 </body>
     <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    
     <script type='text/javascript'>
-        var graphs = {{ graphJSON | safe}};
-        for(let i = 0; i < graphJSON.length; i++){
-            Plotly.plot(`chart${i}`, graphs, {});
+        for (let i = 0; i < graphJSON.length; i++){
+            var graphs = {{ graphJSON[i] | safe}};
 
+            Plotly.plot(`chart${i}`, graphs, {});
         }
         </script>
-
 </html>
 
 {% endblock %}
