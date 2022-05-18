@@ -43,8 +43,8 @@ def load_user(user_id):
 
 
 @app.route("/", methods=['GET'])
-def index(graphJSON=None):
-    args = request.args
+def index():
+    # args = request.args
     if current_user.is_authenticated:
         # return (
         #     "<p>Hello, {}! You're logged in! Email: {}</p>"
@@ -55,16 +55,16 @@ def index(graphJSON=None):
         #     )
         # )
         return render_template('index.html',  user_name=current_user.name, user_email=current_user.email,
-                               user_pic=current_user.profile_pic, user=current_user, graphJSON=args["graphJSON"])
+                               user_pic=current_user.profile_pic, user=current_user, graphJSON=graph_holder)
     else:
         # return '<a class="button" href="/login">Google Login</a>'
 
         #Args is a dictionary that contains key "requestJSON".  This is how we pass our graph data.
-        if args:
-            if args["graphJSON"]:
-                return render_template('index.html', graphJSON=args["graphJSON"])
-
-        return render_template('index.html', graphJSON=None)
+        # if args:
+        #     if args["graphJSON"]:
+        #         return render_template('index.html', graphJSON=args["graphJSON"])
+        #
+        return render_template('index.html', graphJSON=graph_holder)
 
 
 @app.route('/api/<coin>', methods=["GET","POST"])
@@ -104,16 +104,17 @@ def get_coin_data(coin, time=100):
     # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     graph_holder.append(graphJSON)
-    return redirect(url_for('index', graphJSON = graphJSON))
+    return redirect(url_for('index'))
 
 
-@app.route("/makegraph/")
-def make_graph(data):
-    df = pd.DataFrame(data)
-    fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
-    # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return redirect(url_for('index', graphJSON=graphJSON))
+
+# @app.route("/makegraph/")
+# def make_graph(data):
+#     df = pd.DataFrame(data)
+#     fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+#     # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
+#     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+#     return redirect(url_for('index', graphJSON=graphJSON))
 
 
 
