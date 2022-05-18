@@ -26,6 +26,18 @@ class users(db.Document):
     }
 
 
+## figure out how to get a user's _ID on mongo as they're added
+## figure out how to get a user's _ID on mongo once they log in (assuming they already have a mongoDB _ID)
+
+users_list = []
+
+@app.route('/users/ids')
+def get_all_ids(): 
+  for user in users.objects:
+    users_list.append(user['id'])
+  # return str(users_list[0]["id"])
+  return str(users_list)
+
 @app.route('/user/add', methods=["POST"])
 def user_add():
   if request.method == "POST":
@@ -39,11 +51,7 @@ def user_add():
 def user_print():
   if request.method == 'GET':
     pass
-    users_list = []
     print(users)
-    for user in users.objects:
-      users_list.append(user)
-    # return str(users_list[0]["id"])
     return make_response(jsonify(users_list),200)
   elif request.method == "POST":
     content = request.json
