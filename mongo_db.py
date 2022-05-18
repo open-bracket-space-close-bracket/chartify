@@ -1,5 +1,6 @@
 import json
 from flask import Flask, jsonify, make_response, request
+import requests
 from flask_mongoengine import MongoEngine
 
 app = Flask(__name__)
@@ -29,14 +30,32 @@ class users(db.Document):
 ## figure out how to get a user's _ID on mongo as they're added
 ## figure out how to get a user's _ID on mongo once they log in (assuming they already have a mongoDB _ID)
 
-users_list = []
+
+def get_all_ids(): 
+  users_dict = {}
+  for user in users.objects:
+    user_email = user["user_email"]
+    users_dict[f"{user_email}"] = user["id"]
+  return users_dict
+
+def compare_and_find(user_email=None):
+  ids = get_all_ids()
+  user = ids[user_email]
+  return user
 
 @app.route('/users/ids')
-def get_all_ids(): 
-  for user in users.objects:
-    users_list.append(user['id'])
-  # return str(users_list[0]["id"])
-  return str(users_list)
+def do_things():
+  if request.method == "GET":
+    data = request.json
+    try:
+      user = compare_and_find(data["user_email"])
+    except:
+      url = "http://127.0.0.1:5000/user/add"
+      data = {"user_email": data["user_email"], "user_name": data['user_name']}
+      requests.post(url, json= data)
+      response = requests.get("http://127.0.0.1:5000/users/ids", json=data)
+      return response._content
+    return str(user)
 
 @app.route('/user/add', methods=["POST"])
 def user_add():
@@ -50,8 +69,9 @@ def user_add():
 @app.route('/user/print', methods=["GET", "POST"])
 def user_print():
   if request.method == 'GET':
-    pass
-    print(users)
+    users_list = []
+    for user in users.objects:
+      users_list.append(user)
     return make_response(jsonify(users_list),200)
   elif request.method == "POST":
     content = request.json
