@@ -136,7 +136,9 @@ def callback():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("index"))
+    return redirect("/")
+
+# url_for("index")
 
 @app.route('/api/<coin>', methods=["GET", "POST"])
 def get_coin_data(coin): 
