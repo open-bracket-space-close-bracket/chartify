@@ -34,6 +34,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 login_manager = LoginManager()
+login_manager.login_view = '/'
 login_manager.init_app(app)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
