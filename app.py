@@ -29,6 +29,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 login_manager = LoginManager()
+login_manager.login_view = '/'
+#ADD TO ALLOW HEROKU PUSH
 login_manager.init_app(app)
 # try:
 #     init_db_command()
@@ -136,7 +138,9 @@ def callback():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("index"))
+    return redirect("/")
+
+# url_for("index")
 
 @app.route('/api/<coin>', methods=["GET", "POST"])
 def get_coin_data(coin): 
