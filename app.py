@@ -147,16 +147,21 @@ def logout():
 
 @app.route('/api/<coin>', methods=["GET","POST"])
 def get_coin_data(coin): 
+    coin = coin.upper()
+
+    if request.method == "POST":
+        coin_name = request.form.get("coin_name")
+        print(f"Coin name: {coin_name}")
+        return redirect(url_for('get_coin_data', coin=coin_name))
+
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
 
-    coin = coin.upper()
     #Sets the start of our timeframe to one year prior to present:
-    starting_date = ending_date - datetime.timedelta(days=365)
+    starting_date = ending_date - datetime.timedelta(days=100)
 
-    # print(f"Starting date: {starting_date}\nEnding date: {ending_date}" )
-
+    #Construct API URL:
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
     COIN_API_KEY = os.getenv('COIN_API_KEY')
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
@@ -167,25 +172,9 @@ def get_coin_data(coin):
     # print(f"Response: {response}")
 
     data = response.json()
-
-    if request.method == "POST":
-        coin_name = request.form.get("coin_name")
-        print(f"Coin name: {coin_name}")
-        return redirect(url_for('get_coin_data', coin=coin_name))
-
-
-    # keys = data[0].keys()
-
     df = pd.DataFrame(data)
-
-     # return f"<p>{df}</p>"
-
     fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+    # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    #return render_template('graph.html', graphJSON = graphJSON)
     return redirect(url_for('index', graphJSON = graphJSON))
-
-
-# if __name__ == "__main__":
-#     app.run(port=os.getenv('PORT', 5000), ssl_context="adhoc")
