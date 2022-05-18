@@ -1,26 +1,65 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-
-{% extends "base.html" %}
-{% block content %}
     
+    
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    </head>
+
+<body>
+    
+    {% extends "base.html" %}
+    {% block content %}
+    {% if user %}
+    <p>{{ user_email }}</p>
+    <p>{{ user_name }}</p>
+    <img src="{{ user_pic }}" alt="user picture"></img>
+    <p></p>
+    {% endif %}
+    {% if not user %}
+    <a class="button" href="/login">Google Login</a>
+    {% endif %}
+
+    {% if user %}
+    <a class="button" href="/logout">Google Logout</a>
+    {% endif %}
+
     <h1>Hello World</h1>
     <form action="/api/{coin_name}" method="post">
         <label for="coin_name">
             Enter a coin name...
         </label>
         <input type="text" name="coin_name" id="coin_name">
+        <select name="timeframe" id="timeframe">
+            <option value="100">100 Days</option>
+            <option value="30">30 Days</option>
+            <option value="7">7 Days</option>
+            <option value="1">1 Day</option>
+        </select>
         <input type="submit">
     </form>
-    </body>
-    </html>
+        {% if graphJSON %}
+            {% for i in range(graphJSON | length) %}
+                <p>Found chart {{i}}</p>
+                <div id='chart{{i}}' class='chart'></div>
+            {% endfor %}
+        {% endif %}
+
+        {% block javascript %}
+            <script>
+                var data = {{graphJSON | safe}};
+                for (let j=0; j<data.length; j++){
+                    var thisChartData = JSON.parse(data[j]);
+                    Plotly.plot(`chart${j}`, thisChartData, {});
+                };
+            </script>
+        {% endblock %}
+</body>
+</html>
 
 {% endblock %}
