@@ -16,7 +16,7 @@ db.init_app(app)
 class users(db.Document):
   user_email = db.StringField()
   user_name = db.StringField()
-  user_queries = db.ListField()
+  user_queries = db.StringField()
 
   def to_json(self): 
     return {
@@ -30,7 +30,7 @@ class users(db.Document):
 def user_add():
   if request.method == "POST":
     data = request.json
-    user = users(user_email=data['user_email'], user_name=data['user_name'], user_queries=[])
+    user = users(user_email=data['user_email'], user_name=data['user_name'], user_queries="")
     user.save()
     return make_response("",201)
 
@@ -60,14 +60,16 @@ def each_user_functions(user_id, new_coin):
     else:
       return make_response("", 404)
   elif request.method == "PUT":
-    # content = request.json
-    # queries = content['user_queries']
+    content = request.json
+    queries = content['user_queries']
+    if queries == "": 
+      new_queries = queries + new_coin
     # print(type(queries))
     # print(new_coin)
-    db.updateOne({"_id": f"{user_id}"}, {"$push": {"user_queries": new_coin}})
-    # print(new_queries)
-    # user_obj = users.objects(id=user_id).first()
-    # user_obj.update(user_email=content['user_email'], user_name=content['user_name'], user_queries=new_queries)
+    else: 
+      new_queries = queries + f", {new_coin}"
+    user_obj = users.objects(id=user_id).first()
+    user_obj.update(user_email=content['user_email'], user_name=content['user_name'], user_queries=new_queries)
     return make_response('', 204)
   elif request.method == "DELETE":
     user_obj = users.objects(id=user_id).first()
