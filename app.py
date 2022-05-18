@@ -26,6 +26,7 @@ GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
+
 graph_holder = []
 current_user_queries = []
 
@@ -107,17 +108,6 @@ def get_coin_data(coin, time=100):
     return redirect(url_for('index'))
 
 
-
-# @app.route("/makegraph/")
-# def make_graph(data):
-#     df = pd.DataFrame(data)
-#     fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
-#     # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
-#     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-#     return redirect(url_for('index', graphJSON=graphJSON))
-
-
-
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
@@ -197,4 +187,3 @@ def callback():
 def logout():
     logout_user()
     return redirect(url_for("index"))
-
