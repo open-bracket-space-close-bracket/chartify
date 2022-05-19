@@ -18,6 +18,7 @@ from flask_login import (
 from oauthlib.oauth2 import WebApplicationClient
 from db import init_db_command
 from user import User
+from mongo_db import do_things, user_add, user_print, each_user_functions
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
@@ -173,3 +174,21 @@ def get_coin_data(coin):
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
     return render_template('graph.html', graphJSON = graphJSON)
+
+@app.route('/users/ids')
+def get_ids():
+    user_id = do_things(request)
+
+@app.route('/user/add', methods=["POST"])
+def add_users():
+    user_add(request)
+
+@app.route('/user/print', methods=["GET", "POST"])
+def print_users():
+    response = user_print(request)
+    return f"<p>{response}</p>"
+
+@app.route('/user/print/<user_id>/<new_coin>', methods=["GET","PUT","DELETE"])
+def other_functions(user_id, new_coin):
+    response = each_user_functions(user_id, new_coin, request)
+    return f"<p>{response}</p>"
