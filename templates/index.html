@@ -37,14 +37,17 @@
         </nav>
         <h1>Coinify</h1>
         <form action="/api/{coin_name}" method="post" class="coinform">
-            <input type="text" name="coin_name" id="coin_name" placeholder="BTC">
+            <input type="text" name="coin_name" id="coin_name" placeholder="Search a coin... (e.g. BTC)">
             <input type="submit" class="submitButton">
-            <select name="timeframe" id="timeframe">
-                <option value="100">100 Days</option>
-                <option value="30">30 Days</option>
-                <option value="7">7 Days</option>
-                <option value="1">1 Day</option>
-            </select>
+            <div class="timeframe_holder">
+                <label for="timeframe">Timeframe: </label>
+                <select name="timeframe" id="timeframe">
+                    <option value="100">100 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="7">7 Days</option>
+                    <option value="1">1 Day</option>
+                </select>
+            </div>
         </form>
         <div class="graphsDisplay">
             {% if graphJSON %}
