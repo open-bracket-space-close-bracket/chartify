@@ -67,8 +67,12 @@ def index():
         #     if args["graphJSON"]:
         #         return render_template('index.html', graphJSON=args["graphJSON"])
         #
-        return render_template('index.html', graphJSON=graph_holder)
+        return render_template('index.html', graphJSON=graph_holder, error_text=None)
 
+# Below route is hit if user doesn't enter a coin name
+@app.route('/api/')
+def default():
+        return redirect(url_for('index'))
 
 @app.route('/api/<coin>', methods=["GET","POST"])
 def get_coin_data(coin, time=100):
@@ -78,15 +82,14 @@ def get_coin_data(coin, time=100):
         coin_name = request.form.get("coin_name")
         timeframe = request.form.get("timeframe")
         print(f"Coin name: {coin_name}, timeframe: {timeframe}")
-        # ALMOST working.... timeframe isn't being passed down to code below 🤔
+        # ALMOST working.... timeframe is being overwritten to 100 by our 'default' argument?
         return redirect(url_for('get_coin_data', coin=coin_name, time=timeframe))
 
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
 
-    #Sets the start of our timeframe to one year prior to present:
-    #The "time" here isn't dynamic though it should be lol 😭
+    #Sets the start of our timeframe to be however many days prior to present:
     starting_date = ending_date - datetime.timedelta(time)
 
     #Construct API URL:
@@ -95,19 +98,30 @@ def get_coin_data(coin, time=100):
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
     rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
-    response = requests.get(request_url, headers=headers)
 
-    # print(f"Response: {response}")
+    # Error catching:
+    try:
+        response = requests.get(request_url, headers=headers)
+    except:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Could not contact API.")
+
+    if response.status_code == 429:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ API rate limit reached. Please tell a dev.")
+
     data = response.json()
 
-    # return redirect(url_for('make_graph', data=data))
+    try:
+        df = pd.DataFrame(data)
+        fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+        # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        graph_holder.append(graphJSON)
 
-    df = pd.DataFrame(data)
-    fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
-    # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    graph_holder.append(graphJSON)
-    return redirect(url_for('index'))
+        return redirect(url_for('index'))
+
+    except:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Coin not found.")
+
 
 
 def get_google_provider_cfg():
