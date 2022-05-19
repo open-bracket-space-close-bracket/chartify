@@ -114,9 +114,7 @@ nav .button{
 }
 
 a{
-  color: green;
-  background-color: rgb(205, 205, 255);
-}
+  color: rgb(255, 145, 0);}
 
 .errorbox{
   border: 1px solid red;
