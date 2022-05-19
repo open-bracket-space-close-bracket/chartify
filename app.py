@@ -126,30 +126,24 @@ def get_coin_data(coin, time=100):
 
     try:
         df = pd.DataFrame(data)
-        fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
-        # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
-        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        graph_holder.append(graphJSON)
-
-        return redirect(url_for('index'))
-
-    except:
-        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Coin not found.")
-
-    df = pd.DataFrame(data)
-    fig = px.line(
+        fig = px.line(
         df, x="time_period_end", y="rate_high", 
         title=f"{coin} from {starting_date} to {ending_date}", template="plotly_dark", labels={
             "time_period_end":"Date",
             "rate_high":"Value ($)"}
         )
-    fig.data[0].line.color = "#ffd700"
-    fig.update_layout(paper_bgcolor="#303030")
-    fig.update_layout(yaxis_tickformat=("~s,"))
+        fig.data[0].line.color = "#ffd700"
+        fig.update_layout(paper_bgcolor="#303030")
+        fig.update_layout(yaxis_tickformat=("~s,"))
 
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    graph_holder.append(graphJSON)
-    return redirect(url_for('index'))
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        graph_holder.append(graphJSON)
+        return redirect(url_for('index'))
+
+    except:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Coin not found.")
+
+
 
 
 def get_google_provider_cfg():
