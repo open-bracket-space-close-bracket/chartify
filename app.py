@@ -30,6 +30,7 @@ GOOGLE_DISCOVERY_URL = (
 
 graph_holder = []
 current_user_queries = []
+global_user_id = []
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
@@ -42,8 +43,11 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
-
+    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    jsonified_data = json.loads(response.text)
+    random_id = os.urandom(32)
+    user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
+    return user
 
 @app.route("/", methods=['GET'])
 def index():
@@ -67,13 +71,13 @@ def index():
         #     if args["graphJSON"]:
         #         return render_template('index.html', graphJSON=args["graphJSON"])
         #
-        return render_template('index.html', graphJSON=graph_holder)
+        # graphJSON=graph_holder
+        return render_template('index.html')
 
 
 @app.route('/api/<coin>', methods=["GET","POST"])
 def get_coin_data(coin, time=100):
     coin = coin.upper()
-
     if request.method == "POST":
         coin_name = request.form.get("coin_name")
         timeframe = request.form.get("timeframe")
@@ -81,6 +85,14 @@ def get_coin_data(coin, time=100):
         # ALMOST working.... timeframe isn't being passed down to code below 🤔
         return redirect(url_for('get_coin_data', coin=coin_name, time=timeframe))
 
+    if coin in current_user_queries:
+        pass
+    else:
+        id = global_user_id[0]
+        response = requests.get(f"http://127.0.0.1:5000/user/print/{id}")
+        jsonified_data = json.loads(response.text)
+        requests.put(f"http://127.0.0.1:5000/user/print/{id}/{coin}", json=jsonified_data)
+        current_user_queries.append(coin)
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
@@ -171,8 +183,18 @@ def callback():
     # Create a user in your db with the information provided
     # by Google
     active_user = {"user_name" : users_name, "user_email": users_email}
-    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
     active_id = requests.get("http://127.0.0.1:5000/users/ids", json=active_user)
+    user_id = active_id.text
+    global_user_id.append(active_id.text)
+    user = User(id_=user_id, name=users_name, email=users_email, profile_pic=picture)
+
+    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    jsonified_data = json.loads(response.text)
+    user_queries = jsonified_data["user_queries"]
+    list_format = user_queries.split(", ")
+    
+    for coin in list_format:
+        requests.get(f"http://127.0.0.1:5000/api/{coin}")
     
 
     # Begin user session by logging the user in
@@ -185,6 +207,9 @@ def callback():
 @login_required
 def logout():
     logout_user()
+    graph_holder.clear()
+    global_user_id.clear()
+    current_user_queries.clear()
     return redirect("/")
 
 @app.route('/users/ids')
@@ -195,13 +220,14 @@ def get_ids():
 @app.route('/user/add', methods=["POST"])
 def add_users():
     user_add(request)
+    return make_response('', 200)
 
-@app.route('/user/print', methods=["GET", "POST"])
-def print_users():
-    response = user_print(request)
-    return f"<p>{response}</p>"
+@app.route('/user/print/<user_id>', methods=["GET"])
+def return_user(user_id):
+    response = user_print(request, user_id)
+    return response
 
 @app.route('/user/print/<user_id>/<new_coin>', methods=["GET","PUT","DELETE"])
 def other_functions(user_id, new_coin):
-    response = each_user_functions(user_id, new_coin, request)
-    return f"<p>{response}</p>"
+    each_user_functions(user_id, new_coin, request)
+    return make_response('', 201)
