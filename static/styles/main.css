@@ -68,7 +68,7 @@ input{
 
 .graphsDisplay{
   border: 1px solid rgb(108, 108, 108);
-  border-radius: 20px;
+  /* border-radius: 20px; */
   display: flex;
   margin: 3%;
 }
@@ -85,4 +85,21 @@ h1{
   color: rgba(255, 255, 255, 0);
   -webkit-text-stroke-width: 2px;
   -webkit-text-stroke-color: gold;
+}
+
+nav{
+  display: flex;
+  align-items: flex-start;
+  align-content: flex-start;
+  align-self: flex-start;
+}
+
+nav .button{
+  border: none;
+  color: white;
+  background-color: rgb(99, 99, 99);
+}
+
+a{
+  color: green;
 }

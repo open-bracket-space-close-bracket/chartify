@@ -11,27 +11,30 @@
     <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Kalam:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Kalam:wght@700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
     <div class="mainContent">
         {% extends "base.html" %}
         {% block content %}
-        {% if user %}
-        <p>{{ user_email }}</p>
-        <p>{{ user_name }}</p>
-        <img src="{{ user_pic }}" alt="user picture"></img>
-        <p></p>
-        {% endif %}
-        {% if not user %}
-        <a class="button" href="/login">Google Login</a>
-        {% endif %}
 
-        {% if user %}
-        <a class="button" href="/logout">Google Logout</a>
-        {% endif %}
+        <nav>
+            {% if user %}
+            <p>{{ user_email }}</p>
+            <p>{{ user_name }}</p>
+            <img src="{{ user_pic }}" alt="user picture"></img>
+            <p></p>
+            {% endif %}
+            {% if not user %}
+            <a class="button" href="/login">Google Login</a>
+            {% endif %}
 
+            {% if user %}
+            <a class="button" href="/logout">Google Logout</a>
+            {% endif %}
+        </nav>
         <h1>Coinify</h1>
         <form action="/api/{coin_name}" method="post" class="coinform">
             <input type="text" name="coin_name" id="coin_name" placeholder="BTC">
@@ -61,7 +64,9 @@
         {% endblock %}
 </body>
 <footer>
-    Brought to you by CoinAPI<br>GitHub Link Goes Here<br>2022
+    <br>Find us on <a href="https://github.com/open-bracket-space-close-bracket/chartify">GitHub</a>
+    <br>Data provided by <a href="https://www.coinapi.io">CoinAPI</a>
+    <br>© 2022
 </footer>
 </div>
 
