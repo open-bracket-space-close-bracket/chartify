@@ -115,4 +115,15 @@ nav .button{
 
 a{
   color: green;
+  background-color: rgb(205, 205, 255);
+}
+
+.errorbox{
+  border: 1px solid red;
+  border-radius: 10px;
+  background-color: pink;
+  color: darkred;
+  width: 50%;
+  padding: 5px;
+  text-align: center;
 }

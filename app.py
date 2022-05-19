@@ -1,3 +1,4 @@
+
 import re
 from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
@@ -8,7 +9,7 @@ import plotly.express as px
 import json
 import datetime
 from datetime import date
-import sqlite3
+from user import User
 from flask_login import (
     LoginManager,
     current_user,
@@ -17,8 +18,7 @@ from flask_login import (
     logout_user,
 )
 from oauthlib.oauth2 import WebApplicationClient
-from db import init_db_command
-from user import User
+
 from mongo_db import do_things, user_add, user_print, each_user_functions
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -30,6 +30,7 @@ GOOGLE_DISCOVERY_URL = (
 
 graph_holder = []
 current_user_queries = []
+global_user_id = []
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
@@ -42,8 +43,11 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
-
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
+    jsonified_data = json.loads(response.text)
+    random_id = os.urandom(32)
+    user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
+    return user
 
 @app.route("/", methods=['GET'])
 def index():
@@ -67,27 +71,38 @@ def index():
         #     if args["graphJSON"]:
         #         return render_template('index.html', graphJSON=args["graphJSON"])
         #
-        return render_template('index.html', graphJSON=graph_holder)
 
+        return render_template('index.html', graphJSON=graph_holder, error_text=None)
+
+# Below route is hit if user doesn't enter a coin name
+@app.route('/api/')
+def default():
+        return redirect(url_for('index'))
 
 @app.route('/api/<coin>', methods=["GET","POST"])
 def get_coin_data(coin, time=100):
     coin = coin.upper()
-
     if request.method == "POST":
         coin_name = request.form.get("coin_name")
         timeframe = request.form.get("timeframe")
         print(f"Coin name: {coin_name}, timeframe: {timeframe}")
-        # ALMOST working.... timeframe isn't being passed down to code below 🤔
+        # ALMOST working.... timeframe is being overwritten to 100 by our 'default' argument?
         return redirect(url_for('get_coin_data', coin=coin_name, time=timeframe))
 
+    if coin in current_user_queries:
+        pass
+    else:
+        id = global_user_id[0]
+        response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{id}")
+        jsonified_data = json.loads(response.text)
+        requests.put(f"https://djlmt-chartify.herokuapp.com/user/print/{id}/{coin}", json=jsonified_data)
+        current_user_queries.append(coin)
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
 
-    #Sets the start of our timeframe to one year prior to present:
-    #The "time" here isn't dynamic though it should be lol 😭
-    starting_date = ending_date - datetime.timedelta(time)
+    #Sets the start of our timeframe to be however many days prior to present:
+    starting_date = ending_date - datetime.timedelta(timeframe)
 
     #Construct API URL:
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
@@ -95,12 +110,30 @@ def get_coin_data(coin, time=100):
     headers = {'X-CoinAPI-Key': COIN_API_KEY}
     rest_of_query = f'/USD/history?period_id=1DAY&time_start={starting_date}T{ending_time}&time_end={ending_date}T{ending_time}'
     request_url = base_url + coin + rest_of_query
-    response = requests.get(request_url, headers=headers)
 
-    print(f"Response: {response}")
+
+    # Error catching:
+    try:
+        response = requests.get(request_url, headers=headers)
+    except:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Could not contact API.")
+
+    if response.status_code == 429:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ API rate limit reached. Please tell a dev.")
+
     data = response.json()
 
-    # return redirect(url_for('make_graph', data=data))
+    try:
+        df = pd.DataFrame(data)
+        fig = px.line(df, x="time_period_end", y="rate_high", title=f"📈💸 Stonks for {coin} from {starting_date} to {ending_date}")
+        # fig.update_layout(margin=dict(l=100, r=100, t=100, b=100))
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        graph_holder.append(graphJSON)
+
+        return redirect(url_for('index'))
+
+    except:
+        return render_template('index.html', graphJSON=graph_holder, error_text="❌ Coin not found.")
 
     df = pd.DataFrame(data)
     fig = px.line(
@@ -178,13 +211,20 @@ def callback():
         return "User email not available or not verified by Google.", 400
     # Create a user in your db with the information provided
     # by Google
-    user = User(
-        id_=unique_id, name=users_name, email=users_email, profile_pic=picture
-    )
+    active_user = {"user_name" : users_name, "user_email": users_email}
+    active_id = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=active_user)
+    user_id = active_id.text
+    global_user_id.append(active_id.text)
+    user = User(id_=user_id, name=users_name, email=users_email, profile_pic=picture)
 
-    # Doesn't exist? Add it to the database.
-    if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
+    jsonified_data = json.loads(response.text)
+    user_queries = jsonified_data["user_queries"]
+    list_format = user_queries.split(", ")
+    
+    for coin in list_format:
+        requests.get(f"https://djlmt-chartify.herokuapp.com/api/{coin}")
+    
 
     # Begin user session by logging the user in
     login_user(user)
@@ -196,22 +236,27 @@ def callback():
 @login_required
 def logout():
     logout_user()
+    graph_holder.clear()
+    global_user_id.clear()
+    current_user_queries.clear()
     return redirect("/")
 
 @app.route('/users/ids')
 def get_ids():
     user_id = do_things(request)
+    return user_id
 
 @app.route('/user/add', methods=["POST"])
 def add_users():
     user_add(request)
+    return make_response('', 200)
 
-@app.route('/user/print', methods=["GET", "POST"])
-def print_users():
-    response = user_print(request)
-    return f"<p>{response}</p>"
+@app.route('/user/print/<user_id>', methods=["GET"])
+def return_user(user_id):
+    response = user_print(request, user_id)
+    return response
 
 @app.route('/user/print/<user_id>/<new_coin>', methods=["GET","PUT","DELETE"])
 def other_functions(user_id, new_coin):
-    response = each_user_functions(user_id, new_coin, request)
-    return f"<p>{response}</p>"
+    each_user_functions(user_id, new_coin, request)
+    return make_response('', 201)

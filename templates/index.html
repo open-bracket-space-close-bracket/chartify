@@ -17,9 +17,16 @@
 
 <body>
     <div class="mainContent">
-        {% extends "base.html" %}
-        {% block content %}
-
+    {% extends "base.html" %}
+    {% block content %}
+    {% if user %}
+    <p>{{ user_email }}</p>
+    <p>{{ user_name }}</p>
+    <p></p>
+    {% endif %}
+    {% if not user %}
+    <a class="button" href="/login">Google Login</a>
+    {% endif %}
         <nav>
             {% if user %}
             <p>{{ user_email }}</p>
@@ -30,6 +37,7 @@
             {% if not user %}
             <a class="button" href="/login">Google Login</a>
             {% endif %}
+
 
             {% if user %}
             <a class="button" href="/logout">Google Logout</a>
@@ -49,6 +57,9 @@
                 </select>
             </div>
         </form>
+     {% if error_text %}
+     <div class="errorbox">{{error_text}}</div>
+     {% endif %}
         <div class="graphsDisplay">
             {% if graphJSON %}
             {% for i in range(graphJSON | length) %}
