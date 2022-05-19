@@ -1,13 +1,36 @@
+html{
+  height: 100%;
+}
+
 body{
-  background-color: rgb(205, 205, 255);
-  margin: 20%;
-  margin-top: 1%;
+  background-color: rgb(22, 22, 22);
+  height: 100%;
+}
+
+.mainContent{
+  border: 1px solid gold;
+  border-radius: 20px;
+  color: rgb(137, 137, 137);
+  background-color: rgb(17, 17, 17);
+
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  padding-top: 1%;
   padding-left: 3%;
   padding-right: 3%;
   padding-bottom: 1%;
+
+  height: auto;
   align-items: center;
   align-content: center;
   text-align: center;
+}
+
+.coinform{
+  text-align: center;
+  align-items: center;
+  align-content: center;
 }
 
 .button{
@@ -16,11 +39,50 @@ body{
 
 input{
   border: none;
+  border-radius: 10px;
   width: 30%;
-  padding: 1%;
+  padding: 0.5%;
+  font-size: 1vw;
+}
+
+.submitButton{
+  width: auto;
+  background-color: gold;
+  font-style: bold;
+  text-align: center;
+  align-items: center;
+  align-content: center;
+  border-radius: 10px;
+}
+
+#timeframe{
+  background-color: rgb(54, 54, 54);
+  color:gold;
+  border-radius: 5px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2px;
+  margin-top: 1vh;
+}
+
+.graphsDisplay{
+  border: 1px solid rgb(108, 108, 108);
+  border-radius: 20px;
+  display: flex;
+  margin: 3%;
+}
+
+.chart{
+  margin: 1%;
+  width: 50%;
+  height: 50%;
 }
 
 h1{
+  font-family: 'Fredoka One', cursive;
   font-size: 7vw;
-  font-style: italic;
+  color: rgba(255, 255, 255, 0);
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: gold;
 }
