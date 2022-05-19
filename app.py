@@ -1,3 +1,4 @@
+
 import re
 from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
@@ -8,7 +9,7 @@ import plotly.express as px
 import json
 import datetime
 from datetime import date
-import sqlite3
+from user import User
 from flask_login import (
     LoginManager,
     current_user,
@@ -17,8 +18,7 @@ from flask_login import (
     logout_user,
 )
 from oauthlib.oauth2 import WebApplicationClient
-from db import init_db_command
-from user import User
+
 from mongo_db import do_things, user_add, user_print, each_user_functions
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -170,13 +170,10 @@ def callback():
         return "User email not available or not verified by Google.", 400
     # Create a user in your db with the information provided
     # by Google
-    user = User(
-        id_=unique_id, name=users_name, email=users_email, profile_pic=picture
-    )
-
-    # Doesn't exist? Add it to the database.
-    if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+    active_user = {"user_name" : users_name, "user_email": users_email}
+    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
+    active_id = requests.get("http://127.0.0.1:5000/users/ids", json=active_user)
+    
 
     # Begin user session by logging the user in
     login_user(user)
@@ -193,6 +190,7 @@ def logout():
 @app.route('/users/ids')
 def get_ids():
     user_id = do_things(request)
+    return user_id
 
 @app.route('/user/add', methods=["POST"])
 def add_users():
