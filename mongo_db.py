@@ -45,10 +45,10 @@ def do_things(request):
     try:
       user = compare_and_find(data["user_email"])
     except:
-      url = "http://127.0.0.1:5000/user/add"
+      url = "https://djlmt-chartify.herokuapp.com/user/add"
       data = {"user_email": data["user_email"], "user_name": data['user_name']}
       requests.post(url, json= data)
-      response = requests.get("http://127.0.0.1:5000/users/ids", json=data)
+      response = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=data)
       return response._content
     return str(user)
 
