@@ -90,7 +90,7 @@ def get_coin_data(coin, time=100):
     ending_time = "00:00:00"
 
     #Sets the start of our timeframe to be however many days prior to present:
-    starting_date = ending_date - datetime.timedelta(time)
+    starting_date = ending_date - datetime.timedelta(timeframe)
 
     #Construct API URL:
     base_url = 'https://rest.coinapi.io/v1/exchangerate/'
