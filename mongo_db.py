@@ -45,10 +45,10 @@ def do_things(request):
     try:
       user = compare_and_find(data["user_email"])
     except:
-      url = "https://djlmt-chartify.herokuapp.com/user/add"
+      url = "http://127.0.0.1:5000/user/add"
       data = {"user_email": data["user_email"], "user_name": data['user_name']}
       requests.post(url, json= data)
-      response = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=data)
+      response = requests.get("http://127.0.0.1:5000/users/ids", json=data)
       return response._content
     return str(user)
 
@@ -62,12 +62,13 @@ def user_add(request):
 
 
 
-def user_print(request):
-  if request.method == 'GET':
-    users_list = []
-    for user in users.objects:
-      users_list.append(user)
-    return make_response(jsonify(users_list),200)
+def user_print(request, user_id):
+  if request.method == "GET":
+    user_obj = users.objects(id=user_id).first()
+    if user_obj:
+      return make_response(jsonify(user_obj.to_json()),200)
+    else:
+      return make_response("", 404)
   # elif request.method == "POST":
   #   content = request.json
   #   user = users(user_email=content["user_email"],user_name=content['user_name'],user_queries=content["user_queries"],)
@@ -76,14 +77,7 @@ def user_print(request):
 
 
 def each_user_functions(user_id, new_coin, request):
-  if request.method == "GET":
-    user_obj = users.objects(id=user_id).first()
-    if user_obj:
-      return make_response(jsonify(user_obj.to_json()),200)
-    else:
-      return make_response("", 404)
-
-  elif request.method == "PUT":
+  if request.method == "PUT":
     content = request.json
     queries = content['user_queries']
     if queries == "": 
