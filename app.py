@@ -43,7 +43,7 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
-    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
     jsonified_data = json.loads(response.text)
     random_id = os.urandom(32)
     user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
@@ -94,9 +94,9 @@ def get_coin_data(coin, time=100):
     else:
         if global_user_id:
             id = global_user_id[0]
-        response = requests.get(f"http://127.0.0.1:5000/user/print/{id}")
+        response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{id}")
         jsonified_data = json.loads(response.text)
-        requests.put(f"http://127.0.0.1:5000/user/print/{id}/{coin}", json=jsonified_data)
+        requests.put(f"https://djlmt-chartify.herokuapp.com/user/print/{id}/{coin}", json=jsonified_data)
         current_user_queries.append(coin)
     #Sets the end of our timeframe:
     ending_date = date.today()
@@ -207,19 +207,19 @@ def callback():
     # Create a user in your db with the information provided
     # by Google
     active_user = {"user_name" : users_name, "user_email": users_email}
-    active_id = requests.get("http://127.0.0.1:5000/users/ids", json=active_user)
+    active_id = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=active_user)
     user_id = active_id.text
     global_user_id.append(active_id.text)
     user = User(id_=user_id, name=users_name, email=users_email, profile_pic=picture)
 
-    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
     jsonified_data = json.loads(response.text)
     user_queries = jsonified_data["user_queries"]
     list_format = user_queries.split(", ")
     
     for coin in list_format:
         current_user_queries.append(coin)
-        requests.get(f"http://127.0.0.1:5000/api/{coin}")
+        requests.get(f"https://djlmt-chartify.herokuapp.com/api/{coin}")
     
 
     # Begin user session by logging the user in
