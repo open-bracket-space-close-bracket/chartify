@@ -1,18 +1,22 @@
 <!doctype html>
 <html lang="en">
-    
-    
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport"
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Document</title>
-        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
-    </head>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Coinify</title>
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Kalam:wght@700&display=swap"
+        rel="stylesheet">
+</head>
 
 <body>
-    
+    <div class="mainContent">
     {% extends "base.html" %}
     {% block content %}
     {% if user %}
@@ -23,45 +27,63 @@
     {% if not user %}
     <a class="button" href="/login">Google Login</a>
     {% endif %}
+        <nav>
+            {% if user %}
+            <p>{{ user_email }}</p>
+            <p>{{ user_name }}</p>
+            <img src="{{ user_pic }}" alt="user picture"></img>
+            <p></p>
+            {% endif %}
+            {% if not user %}
+            <a class="button" href="/login">Google Login</a>
+            {% endif %}
 
-    {% if user %}
-    <a class="button" href="/logout">Google Logout</a>
-    {% endif %}
 
-    <h1>Hello World</h1>
-    <form action="/api/{coin_name}" method="post">
-        <label for="coin_name">
-            Enter a coin name...
-        </label>
-        <input type="text" name="coin_name" id="coin_name">
-        <select name="timeframe" id="timeframe">
-            <option value="100">100 Days</option>
-            <option value="30">30 Days</option>
-            <option value="7">7 Days</option>
-            <option value="1">1 Day</option>
-        </select>
-        <input type="submit">
-    </form>
-    {% if error_text %}
-    <div class="errorbox">{{error_text}}</div>
-    {% endif %}
-        {% if graphJSON %}
+            {% if user %}
+            <a class="button" href="/logout">Google Logout</a>
+            {% endif %}
+        </nav>
+        <h1>Coinify</h1>
+        <form action="/api/{coin_name}" method="post" class="coinform">
+            <input type="text" name="coin_name" id="coin_name" placeholder="Search a coin... (e.g. BTC)">
+            <input type="submit" class="submitButton">
+            <div class="timeframe_holder">
+                <label for="timeframe">Timeframe: </label>
+                <select name="timeframe" id="timeframe">
+                    <option value="100">100 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="7">7 Days</option>
+                    <option value="1">1 Day</option>
+                </select>
+            </div>
+        </form>
+     {% if error_text %}
+     <div class="errorbox">{{error_text}}</div>
+     {% endif %}
+        <div class="graphsDisplay">
+            {% if graphJSON %}
             {% for i in range(graphJSON | length) %}
-                <p>Found chart {{i}}</p>
-                <div id='chart{{i}}' class='chart'></div>
+            <div id='chart{{i}}' class='chart'></div>
             {% endfor %}
-        {% endif %}
-
+            {% endif %}
+        </div>
         {% block javascript %}
-            <script>
-                var data = {{graphJSON | safe}};
-                for (let j=0; j<data.length; j++){
-                    var thisChartData = JSON.parse(data[j]);
-                    Plotly.plot(`chart${j}`, thisChartData, {});
-                };
-            </script>
+        <script>
+            var data = {{ graphJSON | safe}};
+            for (let j = 0; j < data.length; j++) {
+                var thisChartData = JSON.parse(data[j]);
+                Plotly.plot(`chart${j}`, thisChartData, {});
+            };
+        </script>
         {% endblock %}
 </body>
+<footer>
+    <br>Find us on <a href="https://github.com/open-bracket-space-close-bracket/chartify">GitHub</a>
+    <br>Data provided by <a href="https://www.coinapi.io">CoinAPI</a>
+    <br>© 2022
+</footer>
+</div>
+
 </html>
 
 {% endblock %}
