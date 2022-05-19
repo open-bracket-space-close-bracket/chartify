@@ -43,6 +43,9 @@
         </select>
         <input type="submit">
     </form>
+    {% if error_text %}
+    <div class="errorbox">{{error_text}}</div>
+    {% endif %}
         {% if graphJSON %}
             {% for i in range(graphJSON | length) %}
                 <p>Found chart {{i}}</p>
