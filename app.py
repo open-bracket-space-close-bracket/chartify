@@ -51,6 +51,7 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
+    print("Load User")
     if current_user_list[0]:
         return current_user_list[0]
     else:
@@ -158,6 +159,7 @@ def get_google_provider_cfg():
 
 @app.route("/login")
 def login():
+    print("Login Route")
     # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
@@ -173,6 +175,7 @@ def login():
 
 @app.route("/login/callback")
 def callback():
+    print("Callback Route")
     # Get authorization code Google sent back to you
     code = request.args.get("code")
     # Find out what URL to hit to get tokens that allow you to ask for
@@ -239,6 +242,7 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
+    print("Logout Route")
     logout_user()
     graph_holder.clear()
     global_user_id.clear()
