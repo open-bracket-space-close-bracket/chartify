@@ -1,5 +1,3 @@
-
-import re
 from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 import requests
 import os
@@ -34,7 +32,7 @@ global_user_id = []
 current_user_list = []
 
 def create_user(user_id):
-    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
     jsonified_data = json.loads(response.text)
     random_id = os.urandom(32)
     user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
@@ -59,27 +57,10 @@ def load_user(user_id):
 
 @app.route("/", methods=['GET'])
 def index():
-    # args = request.args
     if current_user.is_authenticated:
-        # return (
-        #     "<p>Hello, {}! You're logged in! Email: {}</p>"
-        #     "<div><p>Google Profile Picture:</p>"
-        #     '<img src="{}" alt="Google profile pic"></img></div>'
-        #     '<a class="button" href="/logout">Logout</a>'.format(
-        #         current_user.name, current_user.email, current_user.profile_pic
-        #     )
-        # )
         return render_template('index.html',  user_name=current_user.name, user_email=current_user.email,
                                user_pic=current_user.profile_pic, user=current_user, graphJSON=graph_holder)
     else:
-        # return '<a class="button" href="/login">Google Login</a>'
-
-        #Args is a dictionary that contains key "requestJSON".  This is how we pass our graph data.
-        # if args:
-        #     if args["graphJSON"]:
-        #         return render_template('index.html', graphJSON=args["graphJSON"])
-        #
-
         return render_template('index.html', error_text=None)
 
 # Below route is hit if user doesn't enter a coin name
@@ -94,7 +75,6 @@ def get_coin_data(coin, time=100):
         coin_name = request.form.get("coin_name")
         timeframe = request.form.get("timeframe")
         print(f"Coin name: {coin_name}, timeframe: {timeframe}")
-        # ALMOST working.... timeframe is being overwritten to 100 by our 'default' argument?
         return redirect(url_for('get_coin_data', coin=coin_name, time=timeframe))
 
     if coin in current_user_queries:
@@ -102,9 +82,9 @@ def get_coin_data(coin, time=100):
     else:
         if global_user_id:
             id = global_user_id[0]
-            response = requests.get(f"http://127.0.0.1:5000/user/print/{id}")
+            response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{id}")
             jsonified_data = json.loads(response.text)
-            requests.put(f"http://127.0.0.1:5000/user/print/{id}/{coin}", json=jsonified_data)
+            requests.put(f"https://djlmt-chartify.herokuapp.com/user/print/{id}/{coin}", json=jsonified_data)
             current_user_queries.append(coin)
     #Sets the end of our timeframe:
     ending_date = date.today()
@@ -178,11 +158,10 @@ def callback():
     print("Callback Route")
     # Get authorization code Google sent back to you
     code = request.args.get("code")
-    # Find out what URL to hit to get tokens that allow you to ask for
-    # things on behalf of a user
+    # Find out what URL to hit to get tokens that allow you to ask for things on behalf of a user
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg["token_endpoint"]
-    # Prepare and send a request to get tokens! Yay tokens!
+    # Prepare and send a request to get tokens.
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,
@@ -196,9 +175,9 @@ def callback():
         auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
     )
 
-    # Parse the tokens!
+    # Parse the tokens.
     client.parse_request_body_response(json.dumps(token_response.json()))
-    # Now that you have tokens (yay) let's find and hit the URL
+    # Now that you have token let's find and hit the URL
     # from Google that gives you the user's profile information,
     # including their Google profile image and email
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
@@ -206,7 +185,7 @@ def callback():
     userinfo_response = requests.get(uri, headers=headers, data=body)
     # You want to make sure their email is verified.
     # The user authenticated with Google, authorized your
-    # app, and now you've verified their email through Google!
+    # app, and now you've verified their email through Google.
     if userinfo_response.json().get("email_verified"):
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
@@ -217,12 +196,12 @@ def callback():
     # Create a user in your db with the information provided
     # by Google
     active_user = {"user_name" : users_name, "user_email": users_email}
-    active_id = requests.get("http://127.0.0.1:5000/users/ids", json=active_user)
+    active_id = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=active_user)
     user_id = active_id.text
     global_user_id.append(active_id.text)
     user = User(id_=user_id, name=users_name, email=users_email, profile_pic=picture)
 
-    response = requests.get(f"http://127.0.0.1:5000/user/print/{user_id}")
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
     jsonified_data = json.loads(response.text)
     user_queries = jsonified_data["user_queries"]
     list_format = user_queries.split(", ")
@@ -230,7 +209,7 @@ def callback():
     
     for coin in list_format:
         current_user_queries.append(coin)
-        requests.get(f"http://127.0.0.1:5000/api/{coin}")
+        requests.get(f"https://djlmt-chartify.herokuapp.com/api/{coin}")
     
 
     # Begin user session by logging the user in
