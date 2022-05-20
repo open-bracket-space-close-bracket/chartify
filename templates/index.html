@@ -21,17 +21,13 @@
         {% block content %}
         <nav>
             {% if user %}
-            <p>{{ user_email }}</p>
+            <a class="button" href="/logout">Google Logout</a>
             <p>{{ user_name }}</p>
+            <p>{{ user_email }}</p>
             <p></p>
             {% endif %}
             {% if not user %}
             <a class="button" href="/login">Google Login</a>
-            {% endif %}
-
-
-            {% if user %}
-            <a class="button" href="/logout">Google Logout</a>
             {% endif %}
         </nav>
         <h1>Coinify</h1>
