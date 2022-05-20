@@ -11,7 +11,6 @@ app.config["MONGODB_HOST"] = DB_URI
 
 
 db = MongoEngine()
-# db.database_name = database_name
 db.init_app(app)
 
 class users(db.Document):
@@ -45,10 +44,10 @@ def do_things(request):
     try:
       user = compare_and_find(data["user_email"])
     except:
-      url = "http://127.0.0.1:5000/user/add"
+      url = "https://djlmt-chartify.herokuapp.com/user/add"
       data = {"user_email": data["user_email"], "user_name": data['user_name']}
       requests.post(url, json= data)
-      response = requests.get("http://127.0.0.1:5000/users/ids", json=data)
+      response = requests.get("https://djlmt-chartify.herokuapp.com/users/ids", json=data)
       return response._content
     return str(user)
 
@@ -69,11 +68,6 @@ def user_print(request, user_id):
       return make_response(jsonify(user_obj.to_json()),200)
     else:
       return make_response("", 404)
-  # elif request.method == "POST":
-  #   content = request.json
-  #   user = users(user_email=content["user_email"],user_name=content['user_name'],user_queries=content["user_queries"],)
-  #   user.save()
-  #   return make_response("", 201)
 
 
 def each_user_functions(user_id, new_coin, request):
@@ -87,8 +81,6 @@ def each_user_functions(user_id, new_coin, request):
     user_obj = users.objects(id=user_id).first()
     user_obj.update(user_email=content['user_email'], user_name=content['user_name'], user_queries=new_queries)
     return make_response('', 204)
-
-  # REWORK -- To get it to delete from the user_queries rather than the entire Entry.
   elif request.method == "DELETE":
     user_obj = users.objects(id=user_id).first()
     user_obj.delete()
