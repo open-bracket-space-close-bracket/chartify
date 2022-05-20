@@ -218,6 +218,7 @@ def callback():
     list_format = user_queries.split(", ")
     
     for coin in list_format:
+        current_user_queries.append(coin)
         requests.get(f"https://djlmt-chartify.herokuapp.com/api/{coin}")
     
 
