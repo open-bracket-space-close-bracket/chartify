@@ -31,6 +31,14 @@ GOOGLE_DISCOVERY_URL = (
 graph_holder = []
 current_user_queries = []
 global_user_id = []
+current_user_list = []
+
+def create_user(user_id):
+    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
+    jsonified_data = json.loads(response.text)
+    random_id = os.urandom(32)
+    user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
+    return user
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
@@ -43,11 +51,10 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
-    response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{user_id}")
-    jsonified_data = json.loads(response.text)
-    random_id = os.urandom(32)
-    user = User(id_=random_id, name=jsonified_data["user_name"], email=jsonified_data["user_email"], profile_pic="")
-    return user
+    if current_user_list[0]:
+        return current_user_list[0]
+    else:
+        return None
 
 @app.route("/", methods=['GET'])
 def index():
@@ -72,7 +79,7 @@ def index():
         #         return render_template('index.html', graphJSON=args["graphJSON"])
         #
 
-        return render_template('index.html', graphJSON=graph_holder, error_text=None)
+        return render_template('index.html', error_text=None)
 
 # Below route is hit if user doesn't enter a coin name
 @app.route('/api/')
@@ -216,6 +223,7 @@ def callback():
     jsonified_data = json.loads(response.text)
     user_queries = jsonified_data["user_queries"]
     list_format = user_queries.split(", ")
+    current_user_list.append(user)
     
     for coin in list_format:
         current_user_queries.append(coin)
@@ -235,6 +243,7 @@ def logout():
     graph_holder.clear()
     global_user_id.clear()
     current_user_queries.clear()
+    current_user_list.clear()
     return redirect("/")
 
 @app.route('/users/ids')
