@@ -101,10 +101,10 @@ def get_coin_data(coin, time=100):
     else:
         if global_user_id:
             id = global_user_id[0]
-        response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{id}")
-        jsonified_data = json.loads(response.text)
-        requests.put(f"https://djlmt-chartify.herokuapp.com/user/print/{id}/{coin}", json=jsonified_data)
-        current_user_queries.append(coin)
+            response = requests.get(f"https://djlmt-chartify.herokuapp.com/user/print/{id}")
+            jsonified_data = json.loads(response.text)
+            requests.put(f"https://djlmt-chartify.herokuapp.com/user/print/{id}/{coin}", json=jsonified_data)
+            current_user_queries.append(coin)
     #Sets the end of our timeframe:
     ending_date = date.today()
     ending_time = "00:00:00"
